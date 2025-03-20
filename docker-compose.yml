@@ -10,18 +10,32 @@ services:
     networks:
       - trino
 
-  mariadb:
-    image: 'mariadb:latest'
-    hostname: mariadb
+  # mariadb:
+  #   image: 'mariadb:latest'
+  #   hostname: mariadb
+  #   ports:
+  #     - '3306:3306'
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: admin
+  #     MYSQL_USER: admin
+  #     MYSQL_PASSWORD: admin
+  #     MYSQL_DATABASE: metastore_db
+  #   volumes:
+  #     - ./mariadb-data:/var/lib/mysql
+  #   networks:
+  #     - trino
+
+  postgres:
+    image: postgres:14.3
+    hostname: postgres
     ports:
-      - '3306:3306'
+      - "5432:5432"
     environment:
-      MYSQL_ROOT_PASSWORD: admin
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-      MYSQL_DATABASE: metastore_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: metastore_db
     volumes:
-      - ./mariadb-data:/var/lib/mysql
+      - pgdata:/var/lib/postgresql/data 
     networks:
       - trino
 
@@ -33,9 +47,11 @@ services:
     volumes:
       - ./conf/metastore-site.xml:/opt/apache-hive-metastore-3.0.0-bin/conf/metastore-site.xml:ro
     environment:
-      METASTORE_DB_HOSTNAME: mariadb
+      METASTORE_DB_HOSTNAME: postgres
+      METASTORE_TYPE: postgres
+      METASTORE_DB_PORT: 5432
     depends_on:
-      - mariadb
+      - postgres
     networks:
       - trino
 
@@ -80,6 +96,7 @@ services:
 volumes:
   minio-data:
     driver: local
+  pgdata:
 
 networks:
   trino:
